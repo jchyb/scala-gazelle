@@ -1,0 +1,78 @@
+diff --git a/deps/BUILD.bazel b/deps/BUILD.bazel
+index f05a54bc..e0d09040 100644
+--- a/deps/BUILD.bazel
++++ b/deps/BUILD.bazel
+@@ -108,19 +108,19 @@ proto_dependency(
+     visibility = ["//visibility:public"],
+ )
+ 
+-# Release: v0.35.0
++# Release: v0.38.0
+ # TargetCommitish: master
+ # Date: 2023-12-21 16:38:31 +0000 UTC
+-# URL: https://github.com/bazelbuild/bazel-gazelle/releases/tag/v0.35.0
++# URL: https://github.com/bazelbuild/bazel-gazelle/releases/tag/v0.38.0
+ # Size: 1780790 (1.8 MB)
+ proto_dependency(
+     name = "bazel_gazelle",
+-    patch_args = ["-p1"],
+-    patches = ["@build_stack_rules_proto//third_party:bazel-gazelle-revert-1152.patch"],
++    # patch_args = ["-p1"],
++    # patches = ["@build_stack_rules_proto//third_party:bazel-gazelle-revert-1152.patch"],
+     repository_rule = "http_archive",
+-    sha256 = "a0ee1d304f7caa46680ba06bdef0e5d9ec8815f6e01ec29398efd13256598c3f",
+-    strip_prefix = "bazel-gazelle-0.35.0",
+-    urls = ["https://github.com/bazelbuild/bazel-gazelle/archive/v0.35.0.tar.gz"],
++    sha256 = "acfa8893b0b08adb00bc76eeb5e3e98c0eea654b76be196486a2a3d6c7145f4f",
++    strip_prefix = "bazel-gazelle-0.38.0",
++    urls = ["https://github.com/bazelbuild/bazel-gazelle/archive/v0.38.0.tar.gz"],
+     deps = [
+         ":bazel_skylib",
+         ":io_bazel_rules_go",
+diff --git a/deps/core_deps.bzl b/deps/core_deps.bzl
+index 9eaa8bf5..7c338301 100644
+--- a/deps/core_deps.bzl
++++ b/deps/core_deps.bzl
+@@ -42,16 +42,10 @@ def bazel_gazelle():
+     _maybe(
+         http_archive,
+         name = "bazel_gazelle",
+-        sha256 = "a0ee1d304f7caa46680ba06bdef0e5d9ec8815f6e01ec29398efd13256598c3f",
+-        strip_prefix = "bazel-gazelle-0.35.0",
++        sha256 = "acfa8893b0b08adb00bc76eeb5e3e98c0eea654b76be196486a2a3d6c7145f4f",
++        strip_prefix = "bazel-gazelle-0.38.0",
+         urls = [
+-            "https://github.com/bazelbuild/bazel-gazelle/archive/v0.35.0.tar.gz",
+-        ],
+-        patches = [
+-            "@build_stack_rules_proto//third_party:bazel-gazelle-revert-1152.patch",
+-        ],
+-        patch_args = [
+-            "-p1",
++            "https://github.com/bazelbuild/bazel-gazelle/archive/v0.38.0.tar.gz",
+         ],
+     )
+
+diff --git a/go_deps.bzl b/go_deps.bzl
+index 536dce70..c424004e 100644
+--- a/go_deps.bzl
++++ b/go_deps.bzl
+@@ -56,7 +56,7 @@ def go_deps():
+         build_file_proto_mode = "disable_global",
+         importpath = "github.com/bazelbuild/bazel-gazelle",
+         sum = "h1:Bvg+zEHWYwWrhJT4WxyvcU3y1DEJpT/XlPYEfIn9lUI=",
+-        version = "v0.35.0",
++        version = "v0.38.0",
+     )
+     go_repository(
+         name = "com_github_bazelbuild_buildtools",
+diff --git a/vendor/modules.txt b/vendor/modules.txt
+index 7d07595a..a70da4d9 100644
+--- a/vendor/modules.txt
++++ b/vendor/modules.txt
+@@ -1,4 +1,4 @@
+-# github.com/bazelbuild/bazel-gazelle v0.35.0
++# github.com/bazelbuild/bazel-gazelle v0.38.0
+ ## explicit; go 1.21
+ github.com/bazelbuild/bazel-gazelle/config
+ github.com/bazelbuild/bazel-gazelle/flag

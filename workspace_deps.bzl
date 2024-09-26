@@ -79,11 +79,11 @@ def bazel_gazelle():
     _maybe(
         http_archive,
         name = "bazel_gazelle",
-        patch_args = ["-p1"],
-        patches = ["//third_party/bazelbuild/bazel-gazelle:pr-1394.patch"],
-        sha256 = "5ebc984c7be67a317175a9527ea1fb027c67f0b57bb0c990bac348186195f1ba",
-        strip_prefix = "bazel-gazelle-2d1002926dd160e4c787c1b7ecc60fb7d39b97dc",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/archive/2d1002926dd160e4c787c1b7ecc60fb7d39b97dc.tar.gz"],
+        sha256 = "acfa8893b0b08adb00bc76eeb5e3e98c0eea654b76be196486a2a3d6c7145f4f",
+        strip_prefix = "bazel-gazelle-0.38.0",
+        urls = [
+            "https://github.com/bazelbuild/bazel-gazelle/archive/v0.38.0.tar.gz",
+        ],
     )
 
 def local_bazel_gazelle():
@@ -111,21 +111,14 @@ def rules_proto():
     )
 
 def build_stack_rules_proto():
-    # Branch: master
-    # Commit: aa380e4421057b35228544bc234f816bb6b72c1c
-    # Date: 2022-12-08 05:19:32 +0000 UTC
-    # URL: https://github.com/stackb/rules_proto/commit/aa380e4421057b35228544bc234f816bb6b72c1c
-    #
-    # use distinct impLang for scala proto exports (#304)
-    #
-    # * use distinct impLang for scala proto exports
-    # * fix test
-    # Size: 2074364 (2.1 MB)
+    # rules_proto 3b147a8ef41e49ae6524a938c4c187e8acf004e2 + updated to use bazel-gazel 0.38.0
     http_archive(
         name = "build_stack_rules_proto",
-        sha256 = "820dc71f2e265a50104671d323caba53790dfe20e9f7249a0e6beeaee39b4597",
-        strip_prefix = "rules_proto-aa380e4421057b35228544bc234f816bb6b72c1c",
-        urls = ["https://github.com/stackb/rules_proto/archive/aa380e4421057b35228544bc234f816bb6b72c1c.tar.gz"],
+        sha256 = "002fa80f1614181b532cbb0ef83d5b859b0b928f2b2a2a733f2d6246dae6fd2f",
+        strip_prefix = "rules_proto-3b147a8ef41e49ae6524a938c4c187e8acf004e2",
+        urls = ["https://github.com/stackb/rules_proto/archive/3b147a8ef41e49ae6524a938c4c187e8acf004e2.tar.gz"],
+        patch_args = ["-p1"],
+        patches = ["@build_stack_scala_gazelle//patches:rules_proto_main+bazel_gazella_0.38.patch"],
     )
 
 def rules_jvm_external():

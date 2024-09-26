@@ -223,8 +223,8 @@ def go_repositories():
         name = "com_github_emicklei_proto",
         build_file_proto_mode = "disable_global",
         importpath = "github.com/emicklei/proto",
-        sum = "h1:l0QiNT6Qs7Yj0Mb4X6dnWBQer4ebei2BFcgQLbGqUDc=",
-        version = "v1.9.0",
+        sum = "h1:YtC/om6EdkJ0me1JPw4h2g10k+ELITjYFb7tpzm8i8k=",
+        version = "v1.13.0",
     )
     go_repository(
         name = "com_github_envoyproxy_go_control_plane",
@@ -362,8 +362,8 @@ def go_repositories():
         name = "com_github_stackb_rules_proto",
         build_file_proto_mode = "disable_global",
         importpath = "github.com/stackb/rules_proto",
-        sum = "h1:HNdmOFBURt+vidIHCxVBmjpVRZu6ez+efUe6ZARj8bc=",
-        version = "v0.0.0-20221020023827-830238a0c071",
+        sum = "h1:GVJCIA56c6YR+JK1k0PV4eWeeMka4qMy0AwaLaI+t4g=",
+        version = "v0.0.0-20240716013255-3b147a8ef41e",    
     )
     go_repository(
         name = "com_github_stretchr_objx",
