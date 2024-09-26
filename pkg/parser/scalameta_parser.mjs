@@ -226,7 +226,10 @@ class ScalaFile {
             this.console.log('Parsing', this.filename);
         }
         const buffer = fs.readFileSync(this.filename);
-        const tree = parseSource(buffer.toString());
+        const config = {
+            dialect: "Scala3Future"
+        }
+        const tree = parseSource(buffer.toString(), config);
         // this.printNode(tree);
         if (tree.error) {
             this.console.log('Parse error:', this.filename);
@@ -451,6 +454,9 @@ class ScalaFile {
                     scope.addImport([ref, importee.name.value].join('.'))
                     break;
                 case 'Importee.Wildcard':
+                    scope.addImport([ref, '_'].join('.'))
+                    break;
+                case 'Importee.GivenAll': 
                     scope.addImport([ref, '_'].join('.'))
                     break;
                 default:
