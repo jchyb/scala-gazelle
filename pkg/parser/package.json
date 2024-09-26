@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "scalameta-parsers": "^4.4.17"
+    "scalameta-parsers": "^4.10.1"
   }
 }
