@@ -26,7 +26,6 @@ func ReadJar(jar *zip.ReadCloser) ([]*spb.TextDocuments, error) {
 	docs := make([]*spb.TextDocuments, 0)
 
 	for _, file := range jar.File {
-
 		if !strings.HasPrefix(file.Name, "META-INF/semanticdb/") {
 			continue
 		}

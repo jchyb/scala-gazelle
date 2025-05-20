@@ -84,11 +84,13 @@ func (r *SemanticdbProvider) CheckFlags(flags *flag.FlagSet, c *config.Config, s
 		}
 	}
 	if r.indexFile != "" {
+		fmt.Printf("Parse index %s\n", r.indexFile)
 		if err := r.parseIndex(r.indexFile); err != nil {
 			return err
 		}
 	}
 	for _, jarFile := range r.jarFiles {
+		fmt.Printf("Parse jar %s\n", jarFile)
 		if err := r.parseJarFile(jarFile); err != nil {
 			return err
 		}
@@ -135,6 +137,9 @@ func (cr *SemanticdbProvider) CanProvide(dep *resolver.ImportLabel, expr build.E
 // ParseScalaRule implements scalarule.Parser
 func (r *SemanticdbProvider) ParseScalaRule(kind string, from label.Label, dir string, srcs ...string) (*sppb.Rule, error) {
 	rule, err := r.delegate.ParseScalaRule(kind, from, dir, srcs...)
+	// fmt.Printf("self=%v\n", r.)
+	fmt.Printf("\nparseScalaRule: from=%v\n", from)
+	fmt.Printf("files=%v\ndocs=%v\n", r.files, r.docs)
 	if err != nil {
 		return nil, err
 	}
@@ -151,8 +156,13 @@ func (r *SemanticdbProvider) LoadScalaRule(from label.Label, rule *sppb.Rule) er
 
 func (r *SemanticdbProvider) visitFile(pkg string, file *sppb.File) error {
 	uri := path.Join(pkg, file.Filename)
+	fmt.Printf("uri=%s, files=%v, docs=%v\n", uri, r.files[uri], r.docs[uri])
 	if f, ok := r.files[uri]; ok {
 		file.SemanticImports = f.SemanticImports
+	}
+	if f, ok := r.docs[uri]; ok {
+		fmt.Printf("visit %v\n", f)
+		// file.SemanticImports = f.SemanticImports
 	}
 	return nil
 }
@@ -163,6 +173,7 @@ func (r *SemanticdbProvider) parseIndex(filename string) error {
 		return err
 	}
 	for _, doc := range docs.Documents {
+		fmt.Printf("Found doc: %v\n", doc)
 		r.docs[doc.Uri] = doc
 	}
 	return nil

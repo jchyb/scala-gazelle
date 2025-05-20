@@ -119,8 +119,8 @@ def library_artifact(java_output):
     return struct_omit_none(
         interface_jar = artifact_location(java_output.ijar),
         jar = artifact_location(java_output.class_jar),
-        source_jar = artifact_location(src_jars[0]) if src_jars else None,
-        source_jars = [artifact_location(f) for f in src_jars],
+        source_jar = artifact_location(src_jars.to_list()[0]) if src_jars else None,
+        source_jars = [artifact_location(f) for f in src_jars.to_list()],
     )
 
 def _is_proto_library_wrapper(target, ctx):
@@ -156,7 +156,7 @@ def jars_from_output(output):
         return []
     return [
         jar
-        for jar in ([output.class_jar, output.ijar] + get_source_jars(output))
+        for jar in ([output.class_jar, output.ijar] + get_source_jars(output).to_list())
         if jar != None and not jar.is_source
     ]
 

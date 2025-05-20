@@ -1,6 +1,7 @@
 package semanticdb
 
 import (
+	"fmt"
 	"log"
 	"sort"
 	"strings"
@@ -10,15 +11,17 @@ import (
 
 func NewTextDocumentVisitor() *TextDocumentVisitor {
 	return &TextDocumentVisitor{
-		symbols: make(map[string]*spb.SymbolInformation),
-		types:   make(map[string]*spb.Type),
+		symbols:    make(map[string]*spb.SymbolInformation),
+		synthetics: make(map[string]*spb.IdTree),
+		types:      make(map[string]*spb.Type),
 	}
 }
 
 type TextDocumentVisitor struct {
-	types   map[string]*spb.Type
-	symbols map[string]*spb.SymbolInformation
-	debug   bool
+	types      map[string]*spb.Type
+	synthetics map[string]*spb.IdTree
+	symbols    map[string]*spb.SymbolInformation
+	debug      bool
 }
 
 func toImport(symbol string) string {
@@ -53,6 +56,17 @@ func (v *TextDocumentVisitor) SemanticImports() []string {
 		seen[imp] = true
 		imports = append(imports, imp)
 	}
+	for name := range v.synthetics {
+		imp := toImport(name)
+		if imp == "" {
+			continue
+		}
+		if _, exists := seen[imp]; exists {
+			continue
+		}
+		seen[imp] = true
+		imports = append(imports, imp)
+	}
 	sort.Strings(imports)
 	return imports
 }
@@ -74,6 +88,11 @@ func (v *TextDocumentVisitor) VisitTextDocument(node *spb.TextDocument) {
 	for _, child := range node.Occurrences {
 		v.VisitOccurence(child)
 	}
+	for _, child := range node.Synthetics {
+		fmt.Printf("visit synthetic %v\n", child)
+		v.VisitSynthetic(child)
+	}
+
 	// TODO: occurrences? diagnostics? synthetics?
 }
 
@@ -355,4 +374,55 @@ func (v *TextDocumentVisitor) VisitOccurence(node *spb.SymbolOccurrence) {
 	// can't save (wrong map value type)
 	// v.symbols[node.Symbol] = nil
 	v.addType(node.Symbol, nil)
+}
+
+func (v *TextDocumentVisitor) VisitSynthetic(node *spb.Synthetic) {
+	v.VisitTree(node.Tree)
+}
+
+func (v *TextDocumentVisitor) VisitTree(node *spb.Tree) {
+	switch t := node.SealedValue.(type) {
+	case *spb.Tree_ApplyTree:
+		v.VisitTree(t.ApplyTree.Function)
+		for _, arg := range t.ApplyTree.Arguments {
+			v.VisitTree(arg)
+		}
+
+	case *spb.Tree_FunctionTree:
+		for _, param := range t.FunctionTree.Parameters {
+			v.VisitIdTree(param)
+		}
+		v.VisitTree(t.FunctionTree.Body)
+
+	case *spb.Tree_IdTree:
+		v.VisitIdTree(t.IdTree)
+
+	case *spb.Tree_LiteralTree:
+		v.VisitConstant(t.LiteralTree.Constant)
+
+	case *spb.Tree_MacroExpansionTree:
+		v.VisitTree(t.MacroExpansionTree.BeforeExpansion)
+		v.VisitType(t.MacroExpansionTree.Tpe)
+
+	case *spb.Tree_OriginalTree:
+		// no-op
+
+	case *spb.Tree_SelectTree:
+		v.VisitTree(t.SelectTree.Qualifier)
+		v.VisitIdTree(t.SelectTree.Id)
+
+	case *spb.Tree_TypeApplyTree:
+		v.VisitTree(t.TypeApplyTree.Function)
+		for _, tpe := range t.TypeApplyTree.TypeArguments {
+			v.VisitType(tpe)
+		}
+	default:
+		fmt.Printf("Unmatched synthetic: %v\n", t)
+	}
+}
+
+func (v *TextDocumentVisitor) VisitIdTree(node *spb.IdTree) {
+	fmt.Printf("\nIdTree: %v\n", node)
+	fmt.Printf("asImport= %s\n", toImport(node.Symbol))
+	v.synthetics[node.Symbol] = node
 }

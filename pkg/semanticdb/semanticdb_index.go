@@ -1,6 +1,7 @@
 package semanticdb
 
 import (
+	"fmt"
 	"log"
 	"sort"
 
@@ -113,6 +114,7 @@ func (s *semanticdbIndexRule) Resolve(rctx *scalarule.ResolveContext, importsRaw
 
 	symbols := make(map[label.Label]*resolver.Symbol)
 	for _, sym := range GetGlobalScope().GetSymbols("") {
+		fmt.Printf("sym: %v\n", sym)
 		symbols[sym.Label] = sym
 	}
 

@@ -188,6 +188,14 @@ class ScalaFile {
          * @type {Map<string,{classes:Array<string>}>}
          */
         this.extendsMap = new Map();
+
+        /**
+         * If trait, or class derives another symbol, record that here.
+         * Key is the package-qualified-name, value is a an object with a list
+         * of names in the form { classes: !Array<string> }
+         * @type {Map<string,{classes:Array<string>}>}
+         */
+        this.derivesMap = new Map();
     }
 
     addName(name) {
@@ -222,6 +230,12 @@ class ScalaFile {
      * Runs the parse.
      */
     parse() {
+        if(!this.filename.endsWith(".scala")){
+            if (debug) {
+                this.console.log('Ignore ', this.filename, "not a valid Scala source");
+            }
+            return;
+        }
         if (debug) {
             this.console.log('Parsing', this.filename);
         }
@@ -414,7 +428,14 @@ class ScalaFile {
         this.packages.add(this.packageQualifiedName(name));
         this.pkgs.push(name);
         this.visitStats(node.stats);
+        if(node.body) {
+            this.visitPkgBody(node.body);
+        }
         this.pkgs.pop();
+    }
+
+    visitPkgBody(node){
+        this.visitStats(node.stats);
     }
 
     visitPkgObject(node) {
@@ -477,6 +498,7 @@ class ScalaFile {
         const qName = this.packageQualifiedName(name);
         this.topClasses.add(qName);
         this.parseExtends('class', qName, node);
+        this.parseDerives('class', qName, node);
         this.visitStats(node.stats);
     }
 
@@ -485,6 +507,7 @@ class ScalaFile {
         const qName = this.packageQualifiedName(name);
         this.topTraits.add(qName);
         this.parseExtends('trait', qName, node);
+        this.parseDerives('trait', qName, node);
         this.visitStats(node.stats);
     }
 
@@ -501,18 +524,18 @@ class ScalaFile {
         this.topTypes.add(this.packageQualifiedName(name));
     }
 
-    parseExtends(type, qName, node) {
+    parseExtendsOrDerives(type, qName, node, getExtendsOrDerives, classMap) {
         const key = `${type} ${qName}`;
         if (node.templ) {
-            for (const init of node.templ.inits) {
-                // this.printNode(init);
-                if (init.tpe) {
-                    const tpe = this.parseName(init.tpe);
+            for (const stat of getExtendsOrDerives(node.templ)) {
+                // this.printNode(stat);
+                if (stat.tpe) {
+                    const tpe = this.parseName(stat.tpe);
                     if (tpe) {
-                        let classList = this.extendsMap.get(key);
+                        let classList = classMap(this).get(key);
                         if (!classList) {
                             classList = { classes: [] };
-                            this.extendsMap.set(key, classList);
+                            classMap(this).set(key, classList);
                         }
                         classList.classes.push(tpe);
                     }
@@ -521,8 +544,22 @@ class ScalaFile {
         }
     }
 
+    parseExtends(type, qName, node) {
+        return this.parseExtendsOrDerives(type, qName, node, templ => templ.inits, self => self.extendsMap);
+    }
+
+    parseDerives(type, qName, node) {
+        return this.parseExtendsOrDerives(type, qName, node, templ => templ.derives, self => self.extendsMap);
+    }
+
+
     resolveExtends() {
         this.extendsMap.forEach((classlist) => {
+            classlist.classes = classlist.classes.map(sym => this.root.resolveSymbol(sym));
+        });
+    }
+    resolveDerives() {
+        this.derivesMap.forEach((classlist) => {
             classlist.classes = classlist.classes.map(sym => this.root.resolveSymbol(sym));
         });
     }
@@ -536,6 +573,7 @@ class ScalaFile {
         }
 
         this.resolveExtends();
+        this.resolveDerives();
 
         const maybeAssignList = (set, prop) => {
             const list = Array.from(set);
@@ -565,7 +603,8 @@ class ScalaFile {
         maybeAssignList(this.topTypes, 'types');
         maybeAssignList(this.names, 'names');
         maybeAssignMap(this.extendsMap, 'extends');
-
+        maybeAssignMap(this.derivesMap, 'extends');
+        // this.console.log(obj);
         return obj;
     }
 
@@ -599,6 +638,8 @@ class ScalaFile {
         switch (ref.type) {
             case 'Type.Apply':
                 return this.parseName(ref.tpe);
+            case 'Term.Apply':
+                return this.parseName(ref.fun);
             case 'Type.Name':
                 return ref.value;
             case 'Term.Name':

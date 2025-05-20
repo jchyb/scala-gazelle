@@ -42,12 +42,13 @@ func NewResolver(installFile, mavenWorkspaceName, lang string, warn warnFunc, pu
 	if err != nil {
 		return nil, fmt.Errorf("loading configuration %s: %w", installFile, err)
 	}
-
-	for _, dep := range c.DependencyTree.Dependencies {
+	for _, dep := range c.Dependencies {
 		c, err := ParseCoordinate(dep.Coord)
+		// fmt.Printf("load %v - %s\n", dep.Coord, c.ArtifactString())
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse coordinate %v: %w", dep.Coord, err)
 		}
+		// fmt.Printf("parsed coordinate %v\n", c)
 		from := label.Label{Repo: mavenWorkspaceName, Name: bazel.CleanupLabel(c.ArtifactString())}
 		labelString := from.String()
 		r.artifacts[dep.Coord] = from
@@ -70,6 +71,8 @@ func (r *mavenResolver) Resolve(pkg string) (label.Label, error) {
 	if !found {
 		return label.NoLabel, fmt.Errorf("package not found: %s", pkg)
 	}
+
+	fmt.Printf("resolve %s - %v\n", pkg, v)
 
 	switch len(v) {
 	case 0:
