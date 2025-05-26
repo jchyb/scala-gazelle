@@ -41,6 +41,10 @@ const (
 	resolveKindRewriteNameDirective = "resolve_kind_rewrite_name"
 )
 
+func defaultTestFileSuffixes() []string {
+	return []string{"Test.scala", "Suite.scala"}
+}
+
 func DirectiveNames() []string {
 	return []string{
 		scalaDebugDirective,
@@ -136,6 +140,19 @@ func (c *Config) clone(config *config.Config, rel string) *Config {
 		clone.fixWildcardImportSpecs = c.fixWildcardImportSpecs[:]
 	}
 	return clone
+}
+
+func (c *Config) IsScalaTestFile(basename string) bool {
+	suffixes := defaultTestFileSuffixes()
+	// if c.customTestFileSuffixes != nil { // TODO add as option/genrule
+	// 	suffixes = *c.customTestFileSuffixes
+	// }
+	for _, suffix := range suffixes {
+		if strings.HasSuffix(basename, suffix) {
+			return true
+		}
+	}
+	return false
 }
 
 // Config returns the parent gazelle configuration

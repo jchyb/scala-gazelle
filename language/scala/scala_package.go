@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"strings"
 
 	"github.com/bazelbuild/bazel-gazelle/config"
 	"github.com/bazelbuild/bazel-gazelle/label"
@@ -158,6 +159,24 @@ func (s *scalaPackage) generateRules(enabled bool) []scalarule.RuleProvider {
 	}
 
 	return rules
+}
+
+func (s *scalaPackage) addedNewRule(addedRule *rule.Rule) scalarule.RuleProvider {
+	configuredRules := s.cfg.ConfiguredRules()
+
+	for _, ruleConfig := range configuredRules {
+		if !ruleConfig.Enabled {
+			// log.Printf("%s: skipping rule config %s (not enabled)", s.args.Rel, ruleConfig.Name)
+			continue
+		}
+
+		ruleConfigFQNParts := strings.SplitN(ruleConfig.Implementation, "%", 2)
+		if ruleConfigFQNParts[1] == addedRule.Kind() {
+			rule := s.resolveRule(ruleConfig, addedRule)
+			return rule
+		}
+	}
+	return nil
 }
 
 func (s *scalaPackage) provideRule(rc *scalarule.Config) scalarule.RuleProvider {
