@@ -30,9 +30,9 @@ func filterStrSlice(elts []string, f func(string) bool) []string {
 // GenerateRules implements part of the language.Language interface
 func (sl *scalaLang) GenerateRules(args language.GenerateArgs) language.GenerateResult {
 
-	if args.File == nil {
-		return language.GenerateResult{}
-	}
+	// if args.File == nil {
+	// 	return language.GenerateResult{}
+	// }
 
 	t1 := time.Now()
 
