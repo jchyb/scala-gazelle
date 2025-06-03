@@ -108,7 +108,11 @@ func (sl *scalaLang) generateScalaLibrary(file *rule.File, pathToPackageRelative
 	sort.Strings(srcs)
 
 	r.SetAttr("srcs", srcs)
-	r.SetAttr("visibility", []string{"//:__subpackages__"})
+	defaultVisibility := "//:__subpackages__"
+	if pkg.cfg.DefaultVisibility() != "" {
+		defaultVisibility = pkg.cfg.DefaultVisibility()
+	}
+	r.SetAttr("visibility", []string{defaultVisibility})
 
 	return r
 }

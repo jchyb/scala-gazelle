@@ -39,6 +39,7 @@ const (
 	resolveWithDirective            = "resolve_with"
 	resolveFileSymbolName           = "resolve_file_symbol_name"
 	resolveKindRewriteNameDirective = "resolve_kind_rewrite_name"
+	defaultVisibilityDirective      = "scala_default_visibility"
 )
 
 func defaultTestFileSuffixes() []string {
@@ -56,6 +57,7 @@ func DirectiveNames() []string {
 		resolveWithDirective,
 		resolveFileSymbolName,
 		resolveKindRewriteNameDirective,
+		defaultVisibilityDirective,
 	}
 }
 
@@ -73,6 +75,7 @@ type Config struct {
 	annotations            map[debugAnnotation]interface{}
 	conflictResolvers      []resolver.ConflictResolver
 	depsCleaners           []resolver.DepsCleaner
+	defaultVisibility      string
 }
 
 // newScalaConfig initializes a new Config.
@@ -165,6 +168,11 @@ func (c *Config) Rel() string {
 	return c.rel
 }
 
+// Scalaconfig 
+func (c *Config) DefaultVisibility() string {
+	return c.defaultVisibility
+}
+
 func (c *Config) shouldKeep(expr build.Expr, dep *resolver.ImportLabel) bool {
 	for _, provider := range c.universe.SymbolProviders() {
 		if provider.CanProvide(dep, expr, c.universe.GetKnownRule) {
@@ -227,9 +235,21 @@ func (c *Config) ParseDirectives(directives []rule.Directive) (err error) {
 			if err := c.parseScalaAnnotation(d); err != nil {
 				return err
 			}
+		case defaultVisibilityDirective:
+			if err := c.parseScalaDefaultVisibility(d); err != nil {
+				return err
+			}
 		}
 	}
 	return
+}
+
+func (c *Config) parseScalaDefaultVisibility(d rule.Directive) error {
+	if len(d.Value) == 0 {
+		return fmt.Errorf("expected a non empty string")
+	}
+	c.defaultVisibility = d.Value
+	return nil
 }
 
 func (c *Config) parseScalaRuleDirective(d rule.Directive) error {
